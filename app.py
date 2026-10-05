@@ -1,318 +1,247 @@
 import streamlit as st
 
-# 1. Page Configuration
+# Set page config
 st.set_page_config(
-    page_title="EEHC | Smart Grid Portfolio Dashboard",
+    page_title="EEHC Smart Grid Dashboard",
     page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
-# 2. Advanced CSS Styling (EEHC Visual Theme)
+# Custom CSS styling for visual polish
 st.markdown("""
 <style>
-    /* Global Styles */
-    .stApp {
-        background-color: #F8FAFC;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    
-    /* Title Banner */
-    .header-banner {
-        background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
-        padding: 24px 32px;
-        border-radius: 16px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-    .header-title {
+    .main-title {
         font-size: 2.2rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        margin: 0;
-        color: #FFFFFF;
-    }
-    .header-subtitle {
-        font-size: 1.05rem;
-        color: #93C5FD;
-        margin-top: 6px;
-        font-weight: 400;
-    }
-
-    /* Domain Headers */
-    .domain-card {
-        background: #1E293B;
-        color: #F8FAFC;
-        padding: 12px 16px;
-        border-radius: 10px 10px 0px 0px;
         font-weight: 700;
-        font-size: 0.95rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: #0E1117;
+        margin-bottom: 0px;
+    }
+    .sub-title {
+        font-size: 1.1rem;
+        color: #555;
+        margin-bottom: 25px;
+    }
+    .domain-header {
+        background-color: #1E3A8A;
+        color: white;
+        padding: 10px;
+        border-radius: 6px;
         text-align: center;
-        border-bottom: 3px solid #2563EB;
+        font-weight: bold;
+        margin-bottom: 12px;
     }
-
-    /* Column Container Box */
-    div[data-testid="column"] > div {
-        background: #FFFFFF;
-        border-radius: 12px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    .stButton>button {
+        width: 100%;
+        text-align: left;
+        border-radius: 6px;
+        border: 1px solid #E0E0E0;
+        padding: 8px 12px;
+        background-color: #FFFFFF;
     }
-
-    /* Customizing Streamlit Buttons to behave like Dashboard Cards */
-    div.stButton > button {
-        width: 100% !important;
-        background-color: #FFFFFF !important;
-        color: #334155 !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 8px !important;
-        padding: 10px 12px !important;
-        font-size: 0.88rem !important;
-        font-weight: 500 !important;
-        text-align: left !important;
-        transition: all 0.2s ease-in-out !important;
-        margin-bottom: 4px !important;
+    .stButton>button:hover {
+        border-color: #1E3A8A;
+        color: #1E3A8A;
     }
-
-    div.stButton > button:hover {
-        background-color: #EFF6FF !important;
-        color: #1D4ED8 !important;
-        border-color: #93C5FD !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1) !important;
-    }
-
-    /* Highlight Active GIS Project Button (IF2) */
-    div.stButton > button[data-testid="baseButton-secondary"]:has(div:contains("IF2")) {
-        background-color: #EFF6FF !important;
+    .highlight-btn>button {
         border: 2px solid #2563EB !important;
-        color: #1E40AF !important;
-        font-weight: 700 !important;
+        background-color: #EFF6FF !important;
+        font-weight: bold;
     }
-
-    /* Metric Cards */
-    .metric-card {
-        background: #FFFFFF;
-        padding: 18px;
-        border-radius: 12px;
-        border-left: 5px solid #2563EB;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-    }
-    .metric-title { font-size: 0.85rem; color: #64748B; font-weight: 600; text-transform: uppercase; }
-    .metric-value { font-size: 1.4rem; color: #0F172A; font-weight: 700; margin-top: 4px; }
-    .metric-desc { font-size: 0.8rem; color: #2563EB; font-weight: 500; margin-top: 2px; }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Roadmap Data Structure
+# Define all 26 projects organized by domain
 PROJECTS = {
-    "1. Policy & Regulatory": [
-        ("PS1", "Policy & regulatory review"),
-        ("PS2", "Technical standards & regulation"),
-        ("PS3", "Privacy & customer data"),
+    "1. Policy & Regulatory Support": [
+        ("PS1", "Policy and regulatory review"),
+        ("PS2", "Technical standards and regulation"),
+        ("PS3", "Privacy and customer data ownership"),
         ("PS4", "Cybersecurity")
     ],
-    "2. Organizational": [
-        ("OS1", "Business goals & use cases"),
+    "2. Organizational Support": [
+        ("OS1", "Business goals and use cases"),
         ("OS2", "Organizational KPIs"),
         ("OS3", "Asset management strategy"),
         ("OS4", "Smart grid governance")
     ],
     "3. Infrastructure": [
-        ("IF1", "Smart meters: C&I"),
-        ("IF2", "Asset Mgmt & GIS Implementation"),
-        ("IF3", "Smart meters: Res >200kWh"),
-        ("IF4", "Asset mgmt & monitoring"),
-        ("IF5", "Smart Meter Plus: Res <200kWh"),
+        ("IF1", "Smart meters: commercial and industrial"),
+        ("IF2", "Asset management design and implementation (GIS Project)"),
+        ("IF3", "Smart meters: residential >200 kWh/month"),
+        ("IF4", "Asset management and monitoring"),
+        ("IF5", "Smart Meter Plus: residential <200 kWh/month"),
         ("IF6", "Phasor measurement units")
     ],
     "4. Technology": [
-        ("TE1", "Tech evaluation & selection"),
+        ("TE1", "Technology evaluation and selection"),
         ("TE2", "Integrated solution selection"),
         ("TE3", "Smart meter analytics"),
         ("TE4", "PV and EV monitoring"),
         ("TE5", "Demand response"),
-        ("TE6", "DSM pilot"),
+        ("TE6", "Demand-side management pilot"),
         ("TE7", "Energy storage pilots")
     ],
     "5. Customer Engagement": [
         ("C1", "Green DISCO"),
         ("C2", "AMI lessons learned"),
         ("C3", "Buy REN@DISCO"),
-        ("C4", "Advanced meter analytics"),
-        ("C5", "Interactive energy apps")
+        ("C4", "Advanced smart meter analytics"),
+        ("C5", "Interactive energy applications")
     ]
 }
 
-# State Management
+# Initialize session state for navigation
 if "selected_project" not in st.session_state:
     st.session_state["selected_project"] = None
 
 def navigate_to(proj_code):
     st.session_state["selected_project"] = proj_code
 
-# Header Banner
-st.markdown("""
-<div class="header-banner">
-    <div class="header-title">EEHC Smart Grid Portfolio Dashboard</div>
-    <div class="header-subtitle">Egyptian Electricity Holding Company • 9 Distribution Companies (DISCOs)</div>
-</div>
-""", unsafe_allow_html=True)
+# Header
+st.markdown("<div class='main-title'>EEHC Smart Grid Portfolio Dashboard</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-title'>Egyptian Electricity Holding Company & 9 Distribution Companies (DISCOs)</div>", unsafe_allow_html=True)
+
+# Navigation Bar / Back button
+if st.session_state["selected_project"]:
+    if st.button("← Back to Smart Grid Roadmap Matrix"):
+        st.session_state["selected_project"] = None
+        st.rerun()
+    st.markdown("---")
 
 # ----------------------------------------------------
 # MAIN DASHBOARD VIEW
 # ----------------------------------------------------
 if st.session_state["selected_project"] is None:
+    st.subheader("Smart Grid Roadmap (5 Domains • 26 Projects)")
+    st.info("💡 **Click on any project below** to navigate directly to its detail page.")
     
-    # Quick Stats Row
-    s1, s2, s3, s4 = st.columns(4)
-    with s1:
-        st.markdown('<div class="metric-card"><div class="metric-title">Portfolio Scope</div><div class="metric-value">5 Domains</div><div class="metric-desc">Strategic Pillars</div></div>', unsafe_allow_html=True)
-    with s2:
-        st.markdown('<div class="metric-card"><div class="metric-title">Total Projects</div><div class="metric-value">26 Projects</div><div class="metric-desc">12 Support • 14 Direct</div></div>', unsafe_allow_html=True)
-    with s3:
-        st.markdown('<div class="metric-card"><div class="metric-title">Coverage Target</div><div class="metric-value">9 DISCOs</div><div class="metric-desc">Unified Standards</div></div>', unsafe_allow_html=True)
-    with s4:
-        st.markdown('<div class="metric-card"><div class="metric-title">Active Implementation</div><div class="metric-value">IF2: GIS Rollout</div><div class="metric-desc">Phase 1 In Progress</div></div>', unsafe_allow_html=True)
-
-    st.markdown("###")
-    st.markdown("##### 📍 Interactive Roadmap Matrix — Click any project to view details")
-
-    # 5-Column Grid Layout
     cols = st.columns(5)
     
-    for idx, (domain_title, proj_list) in enumerate(PROJECTS.items()):
+    for idx, (domain, proj_list) in enumerate(PROJECTS.items()):
         with cols[idx]:
-            st.markdown(f'<div class="domain-card">{domain_title}</div>', unsafe_allow_html=True)
-            st.markdown("<div style='padding: 8px;'>", unsafe_allow_html=True)
-            
+            st.markdown(f"<div class='domain-header'>{domain}</div>", unsafe_allow_html=True)
             for code, name in proj_list:
-                # Custom label format
-                if code == "IF2":
-                    button_label = f"⭐ **{code}**: {name}"
-                else:
-                    button_label = f"• **{code}**: {name}"
+                # Highlight GIS Project IF2
+                is_active = (code == "IF2")
+                label = f"🔵 **{code}**: {name}" if is_active else f"⚪ **{code}**: {name}"
                 
-                if st.button(button_label, key=f"btn_{code}"):
+                if st.button(label, key=f"btn_{code}"):
                     navigate_to(code)
                     st.rerun()
-                    
-            st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
-    st.subheader("Potential Portfolio Benefits")
     
-    b1, b2, b3, b4, b5 = st.columns(5)
-    b1.info("💰 **B1 / B2**\n\nDeferred & Avoided Grid Investments")
-    b2.warning("⚡ **B3 / B4**\n\nReduced Outages & Technical Losses")
-    b3.success("🌱 **B5 / B6**\n\nImproved Customer Satisfaction")
-    b4.metric("B7 / B8", "CO₂ Reduction", "Operational Efficiency")
-    b5.metric("B9", "EV Integration", "Grid Readiness")
+    # Portfolio Benefits Overview
+    st.subheader("Potential Benefits of the Smart-Grid Portfolio")
+    b_col1, b_col2, b_col3, b_col4, b_col5 = st.columns(5)
+    b_col1.metric("B1 / B2", "Grid Investment", "Deferred / Avoided")
+    b_col2.metric("B3 / B4", "Outages & Losses", "Reduced")
+    b_col3.metric("B5 / B6", "Customer Experience", "Improved")
+    b_col4.metric("B7 / B8", "Efficiency", "CO₂ & Ops Reduced")
+    b_col5.metric("B9", "EV Integration", "Benefits Enabled")
 
 # ----------------------------------------------------
 # PROJECT DETAIL VIEWS
 # ----------------------------------------------------
 else:
-    # Back Button Navigation
-    if st.button("← Return to Smart Grid Dashboard"):
-        st.session_state["selected_project"] = None
-        st.rerun()
-        
     proj_code = st.session_state["selected_project"]
     
-    # DETAIL PAGE: GIS ROLLOUT (IF2)
+    # --- PROJECT IF2: GIS ROLLOUT DETAIL PAGE ---
     if proj_code == "IF2":
-        st.markdown("## 🗺️ IF2: Asset Management Design & Implementation (GIS Rollout)")
-        st.caption("Central GIS Foundation, Network Digitization, and Operating Applications")
+        st.title("IF2: Asset Management Design & Implementation — GIS Rollout Project")
+        st.caption("Strategic Roadmap & Execution Framework for EEHC and 9 DISCOs")
+        
+        # Key Metrics Overview
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Short-Term Focus", "MV Coverage", "By June 2027")
+        m2.metric("Medium-Term Focus", "LV Expansion", "2027 – 2030")
+        m3.metric("Long-Term Focus", "ADMS / Operations", "2030 Onward")
+        m4.metric("Target Scope", "9 DISCOs", "Unified Standard")
         
         st.markdown("---")
         
-        # Key Progress Metrics
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Short Term (2026–2027)", "Full MV Coverage", "Jan 2026 – Jun 2027")
-        m2.metric("Medium Term (2027–2030)", "LV Network & Apps", "Jun 2027 – May 2030")
-        m3.metric("Long Term (2030+)", "ADMS & Automation", "May 2030 Onward")
-        m4.metric("Standardization", "Unified Schema", "9 DISCOs")
-
-        st.markdown("###")
-        
-        # Detailed Content Tabs
+        # Tabs for GIS Modules
         tab1, tab2, tab3, tab4 = st.tabs([
             "🎯 Strategic Objectives", 
-            "📅 Three Horizons Timeline", 
-            "🔄 Update Workflow", 
-            "🔌 Integrated Applications"
+            "📅 3-Horizon Timeline", 
+            "🔄 Update Workflow & Monitoring", 
+            "🗂️ Application Domains"
         ])
         
         with tab1:
-            c1, c2 = st.columns(2)
-            with c1:
+            st.subheader("Strategic Core Objectives")
+            col_a, col_b = st.columns(2)
+            with col_a:
                 st.markdown("""
-                #### Core Objectives
-                * **Unified Network Record**: Establishing one common network standard across all 9 DISCOs.
-                * **Trusted Network Data**: Verified asset locations, stable IDs, and connectivity rules.
+                * **Unified Network Record**: 9 DISCOs operating on one common data schema standard.
+                * **Trusted Network Data**: Verified asset locations, stable IDs, and connectivity validation.
                 """)
-            with c2:
+            with col_b:
                 st.markdown("""
-                #### Operational Integration
-                * **Continuous Updates**: Controlled workflow to capture, verify, approve, and publish changes.
-                * **Sector Applications**: Foundation for Asset Management, OMS, and ADMS tools.
+                * **Continuous Updates**: Structured *Capture → Verify → Approve → Publish* lifecycle.
+                * **Sector Applications**: Integration with Asset Management, OMS, and ADMS.
                 """)
-
+                
         with tab2:
+            st.subheader("Implementation Horizons")
             st.markdown("""
-            | Horizon | Target Dates | Focus Area | Deliverable / Gate |
+            | Horizon | Timeline | Focus Area | Key Target / Evidence |
             | :--- | :--- | :--- | :--- |
-            | **Short Term** | Jan 2026 – Jun 2027 | Central GIS foundation & 9 DISCO pilots | Accepted MV records across all 9 DISCOs |
-            | **Medium Term** | Jun 2027 – May 2030 | LV expansion & specialized applications | Validated electrical models & active apps |
-            | **Long Term** | May 2030 Onward | Coordinated operations & ADMS | Approved investment cases & operating readiness |
+            | **Short Term** | Jan 2026 – Jun 2027 | Central foundation, 9 DISCO pilots, full MV network coverage | Accepted MV records across all 9 DISCOs |
+            | **Medium Term** | Jun 2027 – May 2030 | LV network coverage, Asset Mgmt, OMS, Loss Analysis, RE/EV pilots | Measured value & validated electrical models |
+            | **Long Term** | May 2030 Onward | ADMS automation, restoration, voltage/peak optimization, AMI | Approved investment cases & operating readiness |
             """)
-
+            
         with tab3:
-            st.info("🔄 **Update Workflow**: Field Change → QA Check → Acceptance Approval → Central SQL/GIS Synchronization")
+            st.subheader("GIS Rollout & Workflow Monitoring")
             st.markdown("""
-            * **EEHC GIS/R&D Team**: Provides common data models, SQL integration, and sync support.
-            * **DISCO Teams**: Responsible for field surveys, attribute verification, and local updates.
+            ```
+            [ Field Change ] ──> [ QA Verification ] ──> [ Approval ] ──> [ Publish to Central SQL/GIS ]
+            ```
             """)
-
+            st.info("The monitoring engine tracks MV coverage status, data quality scores, update backlogs, and sync timestamps across each DISCO.")
+            
         with tab4:
-            st.selectbox("Select Application Domain to View Configuration Details:", [
-                "Asset Management & Risk-Based Maintenance",
-                "Fleet & Workforce Management",
+            st.subheader("Connected Operating Applications")
+            app_choice = st.selectbox("Select Application Domain to View Roadmap Details:", [
+                "Asset Management & Maintenance",
+                "Fleet & Field Workforce Management",
                 "Outage Management System (OMS)",
-                "Loss Analysis & Cost Visibility",
-                "Renewable Energy Screening",
-                "Power Quality & Battery Support"
+                "Loss Analysis & Energy Cost Visibility",
+                "Renewable Energy & EV Connection Planning",
+                "Power Quality Assessment",
+                "Battery Energy Storage (BESS)"
             ])
+            st.write(f"**Selected Domain:** {app_choice}")
             st.json({
-                "Project Code": "IF2-APP",
-                "Integration Status": "Roadmap Architecture Defined",
-                "Central Database": "Connected Enterprise SQL / ArcGIS",
-                "Target Deployment": "Medium-Term Horizon"
+                "Status": "Defined in GIS Master Plan",
+                "Data Requirements": "Verified topology, Common Asset IDs, SQL Integration",
+                "Target Deployment": "Medium-Term Horizon (2027-2030)"
             })
 
-    # PLACEHOLDER PAGE: OTHER 25 PROJECTS
+    # --- PLACEHOLDER FOR OTHER 25 PROJECTS ---
     else:
+        st.title(f"Project Code: {proj_code}")
+        
+        # Retrieve project name
         proj_name = "Selected Project"
-        for domain in PROJECTS.values():
-            for code, name in domain:
+        for domain_list in PROJECTS.values():
+            for code, name in domain_list:
                 if code == proj_code:
                     proj_name = name
                     break
-                    
-        st.markdown(f"## ⚙️ {proj_code}: {proj_name}")
-        st.warning("🔒 This module space is reserved for implementation details.")
         
-        c1, c2 = st.columns(2)
-        with c1:
-            st.text_input("Project Lead / Department", value="To be assigned", disabled=True)
-            st.selectbox("Current Phase", ["Concept", "Specification", "Implementation", "Deployed"])
-        with c2:
-            st.date_input("Target Implementation Date")
-            st.number_input("Allocated Budget ($)", value=0)
+        st.subheader(proj_name)
+        st.warning("🚧 This project module is currently reserved in the master roadmap. Detailed workflow and data structures will be configured here.")
+        
+        st.markdown("### Placeholder Specifications")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.text_input("Project Owner / Department", value="Pending Allocation", disabled=True)
+            st.selectbox("Project Status", ["Planning", "Pilot", "In Progress", "Completed"], index=0)
+        with col2:
+            st.date_input("Target Start Date")
+            st.number_input("Estimated Budget ($)", value=0)
             
-        st.text_area("Scope & Deliverables", placeholder="Define project goals, technical scope, and KPIs...")
-        st.button("Save Draft", disabled=True)
+        st.text_area("Scope & Objectives Overview", placeholder="Enter project scope and requirements here...")
+        st.button("Save Configuration", disabled=True)
